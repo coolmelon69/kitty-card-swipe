@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, X } from "lucide-react";
 import LoadingScreen from "@/components/LoadingScreen";
-import SwipeCard from "@/components/SwipeCard";
+import SwipeCard, { type SwipeCardHandle } from "@/components/SwipeCard";
 import SummaryScreen from "@/components/SummaryScreen";
 
 interface CatData {
@@ -17,7 +17,7 @@ const Index = () => {
   const [likedCats, setLikedCats] = useState<string[]>([]);
   const [view, setView] = useState<AppView>("loading");
   const [busy, setBusy] = useState(false);
-  const topCardRef = useRef<HTMLDivElement>(null);
+  const topCardRef = useRef<SwipeCardHandle>(null);
 
   const fetchCats = useCallback(async () => {
     setView("loading");
@@ -36,9 +36,7 @@ const Index = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchCats();
-  }, [fetchCats]);
+  useEffect(() => { fetchCats(); }, [fetchCats]);
 
   useEffect(() => {
     document.body.style.overflow = view === "swiping" ? "hidden" : "";
@@ -52,8 +50,7 @@ const Index = () => {
       }
       const next = currentIndex + 1;
       if (next >= cats.length) {
-        // Small delay so the fly-out is visible before switching view
-        setTimeout(() => setView("summary"), 150);
+        setTimeout(() => setView("summary"), 100);
       } else {
         setCurrentIndex(next);
       }
@@ -65,8 +62,7 @@ const Index = () => {
   const triggerSwipe = (dir: "left" | "right") => {
     if (view !== "swiping" || busy) return;
     setBusy(true);
-    // Use the ref to trigger fly-out animation on the top card
-    SwipeCard.flyOut(topCardRef, dir);
+    topCardRef.current?.flyOut(dir);
   };
 
   const remaining = cats.length - currentIndex;
@@ -85,9 +81,7 @@ const Index = () => {
             exit={{ opacity: 0 }}
           >
             <div className="text-center">
-              <h1 className="text-2xl sm:text-3xl font-black text-foreground">
-                🐾 Paws & Preferences
-              </h1>
+              <h1 className="text-2xl sm:text-3xl font-black text-foreground">🐾 Paws & Preferences</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 {remaining} {remaining === 1 ? "cat" : "cats"} remaining
               </p>
@@ -130,11 +124,7 @@ const Index = () => {
         )}
 
         {view === "summary" && (
-          <SummaryScreen
-            key="summary"
-            likedCats={likedCats}
-            onPlayAgain={fetchCats}
-          />
+          <SummaryScreen key="summary" likedCats={likedCats} onPlayAgain={fetchCats} />
         )}
       </AnimatePresence>
     </div>
