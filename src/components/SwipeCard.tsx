@@ -1,66 +1,86 @@
-import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { Heart, X } from "lucide-react";
-import { useState } from "react";
+import { motion, useMotionValue, useTransform, animate, PanInfo } from "framer-motion";
+import { useRef } from "react";
 
 interface SwipeCardProps {
   imageUrl: string;
-  onSwipe: (direction: "left" | "right") => void;
+  onSwipeComplete: (direction: "left" | "right") => void;
   isTop: boolean;
   index: number;
 }
 
-const SwipeCard = ({ imageUrl, onSwipe, isTop, index }: SwipeCardProps) => {
+const SwipeCard = ({ imageUrl, onSwipeComplete, isTop, index }: SwipeCardProps) => {
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-25, 25]);
-  const likeOpacity = useTransform(x, [0, 100], [0, 1]);
-  const nopeOpacity = useTransform(x, [-100, 0], [1, 0]);
+  const rotate = useTransform(x, [-200, 200], [-18, 18]);
+  const likeOpacity = useTransform(x, [20, 120], [0, 1]);
+  const nopeOpacity = useTransform(x, [-120, -20], [1, 0]);
+  const isAnimating = useRef(false);
 
-  const [exitX, setExitX] = useState(0);
+  const flyOut = (direction: "left" | "right") => {
+    if (isAnimating.current) return;
+    isAnimating.current = true;
+    const target = direction === "right" ? 500 : -500;
+    animate(x, target, {
+      type: "spring",
+      stiffness: 300,
+      damping: 30,
+      velocity: direction === "right" ? 800 : -800,
+      onComplete: () => {
+        onSwipeComplete(direction);
+      },
+    });
+  };
 
   const handleDragEnd = (_: any, info: PanInfo) => {
-    if (Math.abs(info.offset.x) > 100) {
-      setExitX(info.offset.x > 0 ? 300 : -300);
-      onSwipe(info.offset.x > 0 ? "right" : "left");
+    if (isAnimating.current) return;
+    const threshold = 80;
+    const velocity = Math.abs(info.velocity.x);
+
+    if (Math.abs(info.offset.x) > threshold || velocity > 500) {
+      const dir = info.offset.x > 0 ? "right" : "left";
+      flyOut(dir);
+    } else {
+      // Snap back
+      animate(x, 0, { type: "spring", stiffness: 500, damping: 30 });
     }
   };
+
+  // Expose flyOut via ref-like pattern through the component
+  // We attach it to the DOM node as a custom property for the parent to call
+  const cardRef = useRef<HTMLDivElement>(null);
+  if (cardRef.current) {
+    (cardRef.current as any).__flyOut = flyOut;
+  }
 
   if (!isTop) {
     return (
       <motion.div
         className="absolute w-[300px] h-[400px] sm:w-[340px] sm:h-[440px] rounded-2xl overflow-hidden shadow-lg bg-card"
-        style={{
+        animate={{
           scale: 1 - index * 0.05,
           y: index * 10,
-          zIndex: 10 - index,
         }}
-        initial={false}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        style={{ zIndex: 10 - index }}
       >
-        <img
-          src={imageUrl}
-          alt="Cat"
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
+        <img src={imageUrl} alt="Cat" className="w-full h-full object-cover" loading="lazy" />
       </motion.div>
     );
   }
 
   return (
     <motion.div
-      className="absolute w-[300px] h-[400px] sm:w-[340px] sm:h-[440px] rounded-2xl overflow-hidden shadow-xl bg-card cursor-grab active:cursor-grabbing"
+      ref={cardRef}
+      className="absolute w-[300px] h-[400px] sm:w-[340px] sm:h-[440px] rounded-2xl overflow-hidden shadow-xl bg-card cursor-grab active:cursor-grabbing touch-none"
       style={{ x, rotate, zIndex: 20 }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.9}
+      dragElastic={0.7}
       onDragEnd={handleDragEnd}
-      exit={{ x: exitX, opacity: 0, transition: { duration: 0.3 } }}
-      whileTap={{ scale: 1.02 }}
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
     >
-      <img
-        src={imageUrl}
-        alt="Cat"
-        className="w-full h-full object-cover pointer-events-none"
-      />
+      <img src={imageUrl} alt="Cat" className="w-full h-full object-cover pointer-events-none select-none" />
       {/* Like overlay */}
       <motion.div
         className="absolute inset-0 flex items-center justify-center bg-primary/20"
@@ -81,6 +101,13 @@ const SwipeCard = ({ imageUrl, onSwipe, isTop, index }: SwipeCardProps) => {
       </motion.div>
     </motion.div>
   );
+};
+
+// Helper to trigger fly-out from parent via ref
+SwipeCard.flyOut = (ref: React.RefObject<HTMLDivElement | null>, direction: "left" | "right") => {
+  if (ref.current && (ref.current as any).__flyOut) {
+    (ref.current as any).__flyOut(direction);
+  }
 };
 
 export default SwipeCard;
