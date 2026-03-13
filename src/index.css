@@ -4,6 +4,29 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+@keyframes float-up {
+  0%   { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+  50%  { transform: translateY(-18px) rotate(10deg); opacity: 1; }
+  100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+}
+
+.animated-bg {
+  background: linear-gradient(-45deg, #ffd6e7, #ffcba4, #e8d5ff, #fff3b0, #ffc8c8);
+  background-size: 400% 400%;
+  animation: gradient-shift 10s ease infinite;
+}
+
+.dark .animated-bg {
+  background: linear-gradient(-45deg, #2a1220, #1e1108, #1c1228, #18100a, #251018);
+  background-size: 400% 400%;
+  animation: gradient-shift 10s ease infinite;
+}
+
 @layer base {
   :root {
     --background: 25 60% 97%;
@@ -15,35 +38,26 @@
     --popover: 30 50% 99%;
     --popover-foreground: 20 25% 15%;
 
-    --primary: 12 76% 62%;
+    --primary: 340 80% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 340 65% 68%;
+    --secondary: 25 90% 62%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 30 30% 92%;
     --muted-foreground: 20 10% 45%;
 
-    --accent: 45 90% 65%;
-    --accent-foreground: 20 25% 15%;
+    --accent: 270 60% 68%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 58%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 25 30% 88%;
     --input: 25 30% 88%;
-    --ring: 12 76% 62%;
+    --ring: 340 80% 60%;
 
     --radius: 1rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -53,19 +67,19 @@
     --card-foreground: 30 30% 92%;
     --popover: 20 18% 12%;
     --popover-foreground: 30 30% 92%;
-    --primary: 12 76% 62%;
+    --primary: 340 80% 65%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 340 65% 68%;
+    --secondary: 25 90% 62%;
     --secondary-foreground: 0 0% 100%;
     --muted: 20 15% 18%;
     --muted-foreground: 25 15% 55%;
-    --accent: 45 90% 65%;
-    --accent-foreground: 20 25% 15%;
-    --destructive: 0 62.8% 30.6%;
+    --accent: 270 60% 68%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 55%;
     --destructive-foreground: 0 0% 100%;
     --border: 20 15% 22%;
     --input: 20 15% 22%;
-    --ring: 12 76% 62%;
+    --ring: 340 80% 65%;
   }
 }
 
