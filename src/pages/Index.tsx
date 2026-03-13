@@ -47,6 +47,10 @@ const Index = () => {
         url: `https://cataas.com/cat/${cat.id}`,
         tags: cat.tags ?? [],
       }));
+      for (let i = catList.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [catList[i], catList[j]] = [catList[j], catList[i]];
+      }
       setCats(catList);
       setView("swiping");
     } catch {
