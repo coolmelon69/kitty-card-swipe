@@ -4,27 +4,39 @@ import { forwardRef, useRef, useImperativeHandle } from "react";
 interface SwipeCardProps {
   imageUrl: string;
   tags?: string[];
-  onSwipeComplete: (direction: "left" | "right") => void;
+  onSwipeComplete: (direction: "left" | "right" | "up") => void;
   isTop: boolean;
   index: number;
 }
 
 export interface SwipeCardHandle {
-  flyOut: (direction: "left" | "right") => void;
+  flyOut: (direction: "left" | "right" | "up") => void;
 }
 
 const SwipeCard = forwardRef<SwipeCardHandle, SwipeCardProps>(
   ({ imageUrl, tags = [], onSwipeComplete, isTop, index }, ref) => {
     const x = useMotionValue(0);
+    const y = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-18, 18]);
     const cardOpacity = useTransform(x, [-300, -150, 0, 150, 300], [0, 1, 1, 1, 0]);
     const likeOpacity = useTransform(x, [20, 120], [0, 1]);
     const nopeOpacity = useTransform(x, [-120, -20], [1, 0]);
+    const superLikeOpacity = useTransform(y, [-120, -20], [1, 0]);
     const isAnimating = useRef(false);
 
-    const flyOut = (direction: "left" | "right") => {
+    const flyOut = (direction: "left" | "right" | "up") => {
       if (isAnimating.current) return;
       isAnimating.current = true;
+      if (direction === "up") {
+        animate(y, -600, {
+          type: "spring",
+          stiffness: 300,
+          damping: 30,
+          velocity: -800,
+          onComplete: () => onSwipeComplete("up"),
+        });
+        return;
+      }
       const target = direction === "right" ? 500 : -500;
       animate(x, target, {
         type: "spring",
@@ -39,11 +51,16 @@ const SwipeCard = forwardRef<SwipeCardHandle, SwipeCardProps>(
 
     const handleDragEnd = (_: any, info: PanInfo) => {
       if (isAnimating.current) return;
+      if (info.offset.y < -100 && Math.abs(info.offset.y) > Math.abs(info.offset.x)) {
+        flyOut("up");
+        return;
+      }
       const threshold = 80;
       if (Math.abs(info.offset.x) > threshold || Math.abs(info.velocity.x) > 500) {
         flyOut(info.offset.x > 0 ? "right" : "left");
       } else {
         animate(x, 0, { type: "spring", stiffness: 500, damping: 30 });
+        animate(y, 0, { type: "spring", stiffness: 500, damping: 30 });
       }
     };
 
@@ -75,9 +92,9 @@ const SwipeCard = forwardRef<SwipeCardHandle, SwipeCardProps>(
     return (
       <motion.div
         className="absolute w-[300px] h-[400px] sm:w-[340px] sm:h-[440px] rounded-3xl overflow-hidden shadow-2xl bg-card cursor-grab active:cursor-grabbing touch-none"
-        style={{ x, rotate, opacity: cardOpacity, zIndex: 20 }}
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
+        style={{ x, y, rotate, opacity: cardOpacity, zIndex: 20 }}
+        drag={true}
+        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
         dragElastic={0.7}
         onDragEnd={handleDragEnd}
         initial={{ scale: 0.95, opacity: 0 }}
@@ -98,6 +115,14 @@ const SwipeCard = forwardRef<SwipeCardHandle, SwipeCardProps>(
             </div>
           )}
         </div>
+
+        {/* SUPER LIKE stamp */}
+        <motion.div
+          style={{ opacity: superLikeOpacity }}
+          className="absolute top-6 left-1/2 -translate-x-1/2 border-4 border-yellow-400 rounded-lg px-3 py-1 rotate-0 z-10"
+        >
+          <span className="text-yellow-400 font-black text-2xl tracking-wider drop-shadow">SUPER LIKE ⭐</span>
+        </motion.div>
 
         {/* LIKE stamp */}
         <motion.div
