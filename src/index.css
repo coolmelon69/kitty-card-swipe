@@ -9,6 +9,17 @@
   50%       { background-position: 100% 50%; }
 }
 
+@keyframes holo-shimmer {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.holo-shimmer {
+  background-size: 300% 300%;
+  animation: holo-shimmer 3s ease infinite;
+}
+
 @keyframes float-up {
   0%   { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
   50%  { transform: translateY(-18px) rotate(10deg); opacity: 1; }

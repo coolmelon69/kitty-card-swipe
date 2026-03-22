@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, X, Sun, Moon, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import LoadingScreen from "@/components/LoadingScreen";
 import SwipeCard, { type SwipeCardHandle } from "@/components/SwipeCard";
 import SummaryScreen from "@/components/SummaryScreen";
 import { playSwipeRight, playSwipeLeft, playSuperLike } from "@/lib/sounds";
+import { rollRarity, buildCatCard } from "@/lib/cardUtils";
+import { useCardCollection } from "@/lib/useCardCollection";
 
 interface CatData {
   id: string;
@@ -26,6 +29,9 @@ const Index = () => {
   const [busy, setBusy] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const topCardRef = useRef<SwipeCardHandle>(null);
+
+  const navigate = useNavigate();
+  const { addCard } = useCardCollection();
 
   const [skipOffset, setSkipOffset] = useState(20);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -109,12 +115,19 @@ const Index = () => {
 
   const advanceCard = useCallback(
     (direction: "left" | "right" | "up") => {
+      const currentCat = cats[currentIndex];
       if (direction === "right") {
-        setLikedCats((prev) => [...prev, cats[currentIndex].url]);
+        const rarity = rollRarity("like", streak);
+        const card = buildCatCard(currentCat, rarity, "like");
+        addCard(card);
+        setLikedCats((prev) => [...prev, currentCat.url]);
         setStreak((s) => s + 1);
         playSwipeRight();
       } else if (direction === "up") {
-        setSuperLikedCats((prev) => [...prev, cats[currentIndex].url]);
+        const rarity = rollRarity("superlike", streak);
+        const card = buildCatCard(currentCat, rarity, "superlike");
+        addCard(card);
+        setSuperLikedCats((prev) => [...prev, currentCat.url]);
         setStreak(0);
         playSuperLike();
       } else {
@@ -129,7 +142,7 @@ const Index = () => {
       }
       setBusy(false);
     },
-    [cats, currentIndex, fetchMoreCats]
+    [cats, currentIndex, fetchMoreCats, streak, addCard]
   );
 
   const triggerSwipe = (dir: "left" | "right") => {
@@ -144,6 +157,12 @@ const Index = () => {
     <div className="animated-bg min-h-screen flex flex-col items-center justify-center relative transition-colors duration-500">
       {/* Top bar */}
       <div className="absolute top-4 right-4 flex items-center gap-3">
+        <button
+          onClick={() => navigate("/collection")}
+          className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        >
+          My Collection
+        </button>
         {totalSwiped > 0 && (
           <button
             onClick={() => setView("summary")}
