@@ -144,12 +144,14 @@ const Index = () => {
     <div className="animated-bg min-h-screen flex flex-col items-center justify-center relative transition-colors duration-500">
       {/* Top bar */}
       <div className="absolute top-4 right-4 flex items-center gap-3">
-        <button
-          onClick={() => setView("summary")}
-          className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
-        >
-          See Results
-        </button>
+        {totalSwiped > 0 && (
+          <button
+            onClick={() => setView("summary")}
+            className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          >
+            See Results
+          </button>
+        )}
         <button
           onClick={() => setIsDark((d) => !d)}
           className="w-10 h-10 rounded-full bg-white/30 dark:bg-black/30 backdrop-blur-sm border border-white/40 dark:border-white/10 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform shadow-md"
@@ -232,8 +234,8 @@ const Index = () => {
 
               {/* Super Like button */}
               <button
-                onClick={() => { setBusy(true); topCardRef.current?.flyOut("up"); }}
-                disabled={busy}
+                onClick={() => { if (remaining === 0) return; setBusy(true); topCardRef.current?.flyOut("up"); }}
+                disabled={busy || remaining === 0}
                 aria-label="Super Like"
                 className="group flex flex-col items-center gap-1.5 disabled:opacity-50 disabled:pointer-events-none"
               >
